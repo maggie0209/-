@@ -68,33 +68,15 @@
     h1 {
       font-size: 1.5rem;
       color: var(--accent);
-      margin-bottom: 10px;
-      font-weight: 700;
-    }
-
-    /* 認識天數 Badge */
-    .counter-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #f4f1de;
-      color: #6a6e59;
-      font-size: 0.85rem;
-      padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 20px;
-    }
-
-    .counter-badge strong {
-      color: var(--text);
+      margin-bottom: 12px;
       font-weight: 700;
     }
 
     .hint {
       font-size: 0.88rem;
       color: var(--text-sub);
-      margin-bottom: 16px;
-      line-height: 1.4;
+      margin-bottom: 20px;
+      line-height: 1.5;
     }
 
     /* 麥克風按鈕 */
@@ -228,26 +210,21 @@
 <body>
 
   <div class="card">
-    <!-- 1. 拍立得照片 (可將 photo.jpg 放同目錄，或替換為任一圖床連結) -->
+    <!-- 1. 拍立得照片 (可換成 photo.jpg 或線上圖床連結) -->
     <div class="polaroid">
       <img class="polaroid-img" src="photo.jpg" alt="Memory Photo" onerror="this.src='https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=800&auto=format&fit=crop'" />
     </div>
 
     <h1>Happy Birthday! 🎈</h1>
 
-    <!-- 2. 認識天數統計 -->
-    <div class="counter-badge">
-      ✨ 我們已經認識了 <strong id="daysCount">0</strong> 天
-    </div>
-
     <p class="hint" id="statusText">許個願望，對著麥克風輕輕吹氣吹熄蠟燭<br/>（也可以直接點擊蠟燭喔！）</p>
 
-    <!-- 3. 麥克風授權鈕 -->
+    <!-- 2. 麥克風授權鈕 -->
     <button class="btn-mic" id="micBtn" onclick="enableMicrophone()">
       🎤 啟用吹氣感應
     </button>
 
-    <!-- 4. 蠟燭本體 -->
+    <!-- 3. 蠟燭本體 -->
     <div class="candle-stage" onclick="extinguishCandle()">
       <div class="candle-stick">
         <div class="wick">
@@ -257,25 +234,18 @@
       </div>
     </div>
 
-    <!-- 5. 吹熄後顯示的打字機卡片內容 -->
+    <!-- 4. 吹熄後顯示的打字機卡片內容 -->
     <div class="message-box" id="typewriterText"></div>
   </div>
 
   <script>
-    /* ========== 1. 認識天數計算 (請調整為你們認識的起始年月日) ========== */
-    const startDate = new Date(2023, 0, 3); // 格式: new Date(年, 月-1, 日) 例如 2023-01-03
-    const today = new Date();
-    const diffTime = Math.abs(today - startDate);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    document.getElementById("daysCount").innerText = diffDays;
-
-    /* ========== 2. 祝賀文字內容設定 ========== */
-    const message = "願你新的一歲依然閃閃發光！✨\n生活有溫柔、工作有成就，所有許下的願望都能如期成真。\n新的一歲，繼續快樂前行，生日大快樂！🎂🎉";
+    /* ========== 1. 祝賀文字內容設定 ========== */
+    const message = "願你新的一歲依然閃閃發光！✨\n生活有溫柔、工作有成就，所有許下的願望都能如期成真。\n新的一歲，繼續快樂前行，生日快樂！🎂🎉";
 
     let isBlownOut = false;
     let audioContext, analyser, microphone, javascriptNode;
 
-    /* ========== 3. 麥克風收音偵測吹氣 ========== */
+    /* ========== 2. 麥克風收音偵測吹氣 ========== */
     async function enableMicrophone() {
       const micBtn = document.getElementById("micBtn");
       try {
@@ -317,7 +287,7 @@
       }
     }
 
-    /* ========== 4. 熄滅蠟燭、放彩帶、啟動打字機 ========== */
+    /* ========== 3. 熄滅蠟燭、放彩帶、啟動打字機 ========== */
     function extinguishCandle() {
       if (isBlownOut) return;
       isBlownOut = true;
@@ -341,7 +311,7 @@
       setTimeout(startTypeWriter, 400);
     }
 
-    /* ========== 5. 打字機逐字動畫 ========== */
+    /* ========== 4. 打字機逐字動畫 ========== */
     let typeIndex = 0;
     function startTypeWriter() {
       const textElement = document.getElementById("typewriterText");
@@ -352,7 +322,7 @@
       }
     }
 
-    /* ========== 6. 雙側發射彩帶 ========== */
+    /* ========== 5. 雙側發射彩帶 ========== */
     function celebrateConfetti() {
       confetti({
         particleCount: 90,

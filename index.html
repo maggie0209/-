@@ -75,7 +75,7 @@
     .hint {
       font-size: 0.88rem;
       color: var(--text-sub);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       line-height: 1.5;
     }
 
@@ -84,15 +84,34 @@
       background: #f4f1de;
       color: var(--text);
       border: 1px solid #e2ddc4;
-      padding: 8px 18px;
-      font-size: 0.85rem;
+      padding: 10px 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
       border-radius: 20px;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: background-color 0.2s ease;
+      transition: all 0.2s ease;
+    }
+
+    /* 吹氣音量進度條 */
+    .meter-container {
+      width: 180px;
+      height: 8px;
+      background: #eee;
+      border-radius: 10px;
+      margin: 0 auto 20px;
+      overflow: hidden;
+      display: none; /* 啟動麥克風後才顯示 */
+    }
+
+    .meter-bar {
+      width: 0%;
+      height: 100%;
+      background: #81c784;
+      transition: width 0.1s ease;
     }
 
     /* 蠟燭本體結構 */
@@ -210,21 +229,28 @@
 <body>
 
   <div class="card">
-    <!-- 1. 拍立得照片 (可換成 photo.jpg 或線上圖床連結) -->
+    <!-- 1. 拍立得照片 (可換成同目錄的 photo.jpg 或線上圖床連結) -->
     <div class="polaroid">
       <img class="polaroid-img" src="photo.jpg" alt="Memory Photo" onerror="this.src='https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=800&auto=format&fit=crop'" />
     </div>
 
     <h1>Happy Birthday! 🎈</h1>
 
-    <p class="hint" id="statusText">許個願望，對著麥克風輕輕吹氣吹熄蠟燭<br/>（也可以直接點擊蠟燭喔！）</p>
+    <p class="hint" id="statusText">先點下方按鈕開啟感應，再對著麥克風吹氣吹熄蠟燭<br/>（也可以直接點擊蠟燭喔！）</p>
 
     <!-- 2. 麥克風授權鈕 -->
-    <button class="btn-mic" id="micBtn" onclick="enableMicrophone()">
-      🎤 啟用吹氣感應
-    </button>
+    <div>
+      <button class="btn-mic" id="micBtn" onclick="enableMicrophone()">
+        🎤 點此開啟吹氣感應
+      </button>
+    </div>
 
-    <!-- 3. 蠟燭本體 -->
+    <!-- 即時吹氣音量進度條 -->
+    <div class="meter-container" id="meterBox">
+      <div class="meter-bar" id="meterBar"></div>
+    </div>
+
+    <!-- 3. 蠟燭本體（支援點擊） -->
     <div class="candle-stage" onclick="extinguishCandle()">
       <div class="candle-stick">
         <div class="wick">
@@ -248,19 +274,36 @@
     /* ========== 2. 麥克風收音偵測吹氣 ========== */
     async function enableMicrophone() {
       const micBtn = document.getElementById("micBtn");
+      const meterBox = document.getElementById("meterBox");
+
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        micBtn.innerText = "✨ 麥克風已就緒，請對手機底部吹氣";
+        // 關閉瀏覽器自帶的降噪，避免把吹氣聲當雜音過濾
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
+        });
+
+        micBtn.innerText = "✨ 感應中：請朝手機底部吹氣～";
         micBtn.style.background = "#e8f5e9";
         micBtn.style.borderColor = "#c8e6c9";
+        meterBox.style.display = "block";
 
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // 喚醒部分手機瀏覽器休眠的音訊引擎
+        if (audioContext.state === "suspended") {
+          await audioContext.resume();
+        }
+
         analyser = audioContext.createAnalyser();
         microphone = audioContext.createMediaStreamSource(stream);
         javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
 
-        analyser.smoothingTimeConstant = 0.4;
-        analyser.fftSize = 1024;
+        analyser.smoothingTimeConstant = 0.2;
+        analyser.fftSize = 512;
 
         microphone.connect(analyser);
         analyser.connect(javascriptNode);
@@ -277,13 +320,18 @@
           }
           const average = values / array.length;
 
-          // 吹氣震幅門檻
-          if (average > 48) {
+          // 視覺化進度條（滿分為 35）
+          const percent = Math.min(100, Math.max(0, (average / 25) * 100));
+          document.getElementById("meterBar").style.width = percent + "%";
+
+          // 超過門檻即熄滅（門檻放寬至 20）
+          if (average > 20) {
             extinguishCandle();
           }
         };
       } catch (err) {
-        micBtn.innerText = "直接點擊蠟燭也能吹熄喔 👆";
+        micBtn.innerText = "直接點擊蠟燭也能熄滅喔 👆";
+        console.warn("麥克風未授權或設備不支援:", err);
       }
     }
 
@@ -296,6 +344,7 @@
       document.getElementById("flame").classList.add("out");
       document.getElementById("statusText").innerText = "✨ 願望已封存，新的一歲一切順利！";
       document.getElementById("micBtn").style.display = "none";
+      document.getElementById("meterBox").style.display = "none";
 
       // 關閉麥克風資源
       if (audioContext && audioContext.state !== "closed") {

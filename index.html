@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Make a Wish! 🎂</title>
+  <title>Happy Birthday! 🎂</title>
+  <!-- 引入輕量彩帶特效庫 -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
@@ -11,13 +12,14 @@
       --card-bg: #ffffff;
       --accent: #e07a5f;
       --text: #3d405b;
+      --text-sub: #7d8296;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     }
 
     body {
@@ -32,43 +34,101 @@
 
     .card {
       background: var(--card-bg);
-      max-width: 400px;
+      max-width: 420px;
       width: 100%;
-      padding: 36px 24px;
-      border-radius: 28px;
+      padding: 32px 24px;
+      border-radius: 26px;
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.06);
       text-align: center;
+    }
+
+    /* 拍立得照片樣式 */
+    .polaroid {
+      background: #fff;
+      padding: 10px 10px 18px 10px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      transform: rotate(-1.5deg);
+      transition: transform 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .polaroid:hover {
+      transform: rotate(0deg) scale(1.02);
+    }
+
+    .polaroid-img {
+      width: 100%;
+      height: 240px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: #eee;
     }
 
     h1 {
       font-size: 1.5rem;
       color: var(--accent);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+
+    /* 認識天數 Badge */
+    .counter-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f4f1de;
+      color: #6a6e59;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+
+    .counter-badge strong {
+      color: var(--text);
+      font-weight: 700;
     }
 
     .hint {
-      font-size: 0.9rem;
-      color: #888;
-      margin-bottom: 36px;
+      font-size: 0.88rem;
+      color: var(--text-sub);
+      margin-bottom: 16px;
+      line-height: 1.4;
     }
 
-    /* 蠟燭舞台 */
+    /* 麥克風按鈕 */
+    .btn-mic {
+      background: #f4f1de;
+      color: var(--text);
+      border: 1px solid #e2ddc4;
+      padding: 8px 18px;
+      font-size: 0.85rem;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 0.2s ease;
+    }
+
+    /* 蠟燭本體結構 */
     .candle-stage {
       position: relative;
-      width: 100px;
-      height: 140px;
-      margin: 0 auto 32px;
+      width: 80px;
+      height: 120px;
+      margin: 0 auto 20px;
       cursor: pointer;
     }
 
-    /* 蠟燭本體 */
     .candle-stick {
       position: absolute;
       bottom: 0;
       left: 50%;
       transform: translateX(-50%);
-      width: 24px;
-      height: 80px;
+      width: 22px;
+      height: 70px;
       background: repeating-linear-gradient(
         45deg,
         #f4a261,
@@ -80,14 +140,13 @@
       box-shadow: inset -3px 0 0 rgba(0,0,0,0.1);
     }
 
-    /* 燭芯 */
     .wick {
       position: absolute;
-      top: -12px;
+      top: -10px;
       left: 50%;
       transform: translateX(-50%);
       width: 3px;
-      height: 12px;
+      height: 10px;
       background: #444;
       border-radius: 2px;
     }
@@ -95,11 +154,11 @@
     /* 火焰 */
     .flame {
       position: absolute;
-      top: -42px;
+      top: -38px;
       left: 50%;
       transform: translateX(-50%);
-      width: 18px;
-      height: 34px;
+      width: 16px;
+      height: 30px;
       background: radial-gradient(ellipse at bottom, #fff 0%, #ffbe0b 50%, #fb5607 100%);
       border-radius: 50% 50% 35% 35% / 80% 80% 30% 30%;
       box-shadow: 0 0 20px rgba(251, 86, 7, 0.6);
@@ -113,16 +172,15 @@
       100% { transform: translateX(-50%) rotate(1.5deg) scale(1.06); }
     }
 
-    /* 熄滅效果 */
     .flame.out {
       opacity: 0;
       transform: translateX(-50%) scale(0.2);
     }
 
-    /* 熄滅後的青煙 */
+    /* 熄滅煙霧 */
     .smoke {
       position: absolute;
-      top: -24px;
+      top: -20px;
       left: 50%;
       width: 8px;
       height: 8px;
@@ -138,57 +196,58 @@
 
     @keyframes rise-smoke {
       0% { opacity: 0.8; transform: translate(-50%, 0) scale(1); }
-      50% { opacity: 0.4; transform: translate(-70%, -24px) scale(2.2); }
-      100% { opacity: 0; transform: translate(-30%, -48px) scale(3.5); }
+      50% { opacity: 0.4; transform: translate(-70%, -20px) scale(2.2); }
+      100% { opacity: 0; transform: translate(-30%, -40px) scale(3.5); }
     }
 
-    /* 許願完成祝賀詞 (初始隱藏) */
-    .wish-message {
-      opacity: 0;
-      transform: translateY(12px);
-      transition: all 0.6s ease 0.4s;
-      line-height: 1.7;
-      font-size: 1rem;
+    /* 祝福卡片（熄滅後才顯現打字機內容） */
+    .message-box {
+      display: none;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      color: var(--text);
+      text-align: left;
+      min-height: 90px;
+      white-space: pre-wrap;
       background: #faf8f5;
-      padding: 16px;
+      padding: 16px 18px;
       border-radius: 14px;
+      border: 1px solid #f0eae1;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.5s ease;
     }
 
-    .wish-message.revealed {
+    .message-box.revealed {
+      display: block;
       opacity: 1;
       transform: translateY(0);
-    }
-
-    /* 啟動麥克風按鈕 */
-    .btn-mic {
-      background: #f4f1de;
-      color: var(--text);
-      border: 1px solid #e2ddc4;
-      padding: 8px 18px;
-      font-size: 0.85rem;
-      border-radius: 20px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
   </style>
 </head>
 <body>
 
   <div class="card">
-    <h1>Make a Birthday Wish 🎂</h1>
-    <p class="hint" id="statusText">許個願望，對著麥克風吹口氣吹熄蠟燭</p>
-
-    <!-- 麥克風啟動按鈕 (因瀏覽器限制需由使用者手動授權) -->
-    <div>
-      <button class="btn-mic" id="micBtn" onclick="enableMicrophone()">
-        🎤 點擊啟用麥克風感應
-      </button>
+    <!-- 1. 拍立得照片 (可將 photo.jpg 放同目錄，或替換為任一圖床連結) -->
+    <div class="polaroid">
+      <img class="polaroid-img" src="photo.jpg" alt="Memory Photo" onerror="this.src='https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=800&auto=format&fit=crop'" />
     </div>
 
-    <!-- 蠟燭主體（支援直接點擊/觸控點熄） -->
+    <h1>Happy Birthday! 🎈</h1>
+
+    <!-- 2. 認識天數統計 -->
+    <div class="counter-badge">
+      ✨ 我們已經認識了 <strong id="daysCount">0</strong> 天
+    </div>
+
+    <p class="hint" id="statusText">許個願望，對著麥克風輕輕吹氣吹熄蠟燭<br/>（也可以直接點擊蠟燭喔！）</p>
+
+    <!-- 3. 麥克風授權鈕 -->
+    <button class="btn-mic" id="micBtn" onclick="enableMicrophone()">
+      🎤 啟用吹氣感應
+    </button>
+
+    <!-- 4. 蠟燭本體 -->
     <div class="candle-stage" onclick="extinguishCandle()">
       <div class="candle-stick">
         <div class="wick">
@@ -198,18 +257,25 @@
       </div>
     </div>
 
-    <!-- 熄滅後顯現的祝福卡片 -->
-    <div class="wish-message" id="wishCard">
-      🎉 願望一定會實現！<br />
-      新的一歲平安順心、心想事成！
-    </div>
+    <!-- 5. 吹熄後顯示的打字機卡片內容 -->
+    <div class="message-box" id="typewriterText"></div>
   </div>
 
   <script>
+    /* ========== 1. 認識天數計算 (請調整為你們認識的起始年月日) ========== */
+    const startDate = new Date(2023, 0, 3); // 格式: new Date(年, 月-1, 日) 例如 2023-01-03
+    const today = new Date();
+    const diffTime = Math.abs(today - startDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    document.getElementById("daysCount").innerText = diffDays;
+
+    /* ========== 2. 祝賀文字內容設定 ========== */
+    const message = "願你新的一歲依然閃閃發光！✨\n生活有溫柔、工作有成就，所有許下的願望都能如期成真。\n新的一歲，繼續快樂前行，生日大快樂！🎂🎉";
+
     let isBlownOut = false;
     let audioContext, analyser, microphone, javascriptNode;
 
-    // 1. 啟用麥克風監聽
+    /* ========== 3. 麥克風收音偵測吹氣 ========== */
     async function enableMicrophone() {
       const micBtn = document.getElementById("micBtn");
       try {
@@ -235,14 +301,13 @@
           const array = new Uint8Array(analyser.frequencyBinCount);
           analyser.getByteFrequencyData(array);
 
-          // 計算音量平均值
           let values = 0;
           for (let i = 0; i < array.length; i++) {
             values += array[i];
           }
           const average = values / array.length;
 
-          // 吹氣閾值（通常貼近麥克風吹氣會超過 45-55）
+          // 吹氣震幅門檻
           if (average > 48) {
             extinguishCandle();
           }
@@ -252,37 +317,52 @@
       }
     }
 
-    // 2. 熄滅蠟燭與動畫處置
+    /* ========== 4. 熄滅蠟燭、放彩帶、啟動打字機 ========== */
     function extinguishCandle() {
       if (isBlownOut) return;
       isBlownOut = true;
 
-      // 熄滅火焰
+      // 熄火與更新文案
       document.getElementById("flame").classList.add("out");
-      document.getElementById("statusText").innerText = "✨ 願望已封存，生日快樂！";
-      document.getElementById("wishCard").classList.add("revealed");
+      document.getElementById("statusText").innerText = "✨ 願望已封存，新的一歲一切順利！";
       document.getElementById("micBtn").style.display = "none";
 
-      // 釋放麥克風資源
+      // 關閉麥克風資源
       if (audioContext && audioContext.state !== "closed") {
         audioContext.close();
       }
 
-      // 爆發慶祝彩帶
+      // 彩帶特效
       celebrateConfetti();
+
+      // 顯示打字機容器並開始逐字印出
+      const box = document.getElementById("typewriterText");
+      box.classList.add("revealed");
+      setTimeout(startTypeWriter, 400);
     }
 
-    // 3. 雙側發射彩帶特效
+    /* ========== 5. 打字機逐字動畫 ========== */
+    let typeIndex = 0;
+    function startTypeWriter() {
+      const textElement = document.getElementById("typewriterText");
+      if (typeIndex < message.length) {
+        textElement.innerHTML += message.charAt(typeIndex);
+        typeIndex++;
+        setTimeout(startTypeWriter, 45);
+      }
+    }
+
+    /* ========== 6. 雙側發射彩帶 ========== */
     function celebrateConfetti() {
       confetti({
-        particleCount: 80,
+        particleCount: 90,
         spread: 70,
-        origin: { x: 0.3, y: 0.6 }
+        origin: { x: 0.25, y: 0.65 }
       });
       confetti({
-        particleCount: 80,
+        particleCount: 90,
         spread: 70,
-        origin: { x: 0.7, y: 0.6 }
+        origin: { x: 0.75, y: 0.65 }
       });
     }
   </script>
